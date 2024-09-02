@@ -1,0 +1,31 @@
+{
+	"directory": "E:\\Documents\\code_projects\\wasm_braille",
+	"file": "hello.c",
+	"output": "C:\\Users\\Oskari\\AppData\\Local\\Temp\\emscripten_temp_f8cmg_g4\\hello_0.o",
+	"arguments": [
+		"E:\\Documents\\emsdk\\upstream\\bin\\clang.exe",
+		"-xc",
+		"hello.c",
+		"-o",
+		"C:\\Users\\Oskari\\AppData\\Local\\Temp\\emscripten_temp_f8cmg_g4\\hello_0.o",
+		"--target=wasm32-unknown-emscripten",
+		"-fignore-exceptions",
+		"-fvisibility=default",
+		"-mllvm",
+		"-combiner-global-alias-analysis=false",
+		"-mllvm",
+		"-enable-emscripten-sjlj",
+		"-mllvm",
+		"-disable-lsr",
+		"-D",
+		"EMSCRIPTEN",
+		"-Werror=implicit-function-declaration",
+		"-I",
+		"E:\\Documents\\emsdk\\upstream\\emscripten\\cache\\sysroot\\include\\SDL",
+		"--sysroot=E:\\Documents\\emsdk\\upstream\\emscripten\\cache\\sysroot",
+		"-Xclang",
+		"-iwithsysroot/include\\compat",
+		"-c",
+		"--target=wasm32-unknown-emscripten"
+	]
+}

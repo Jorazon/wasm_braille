@@ -1,0 +1,16 @@
+{
+	"configurations": [
+		{
+			"name": "Emscripten",
+			"includePath": [
+				"${workspaceFolder}/**",
+				"E:\\Documents\\emsdk\\upstream\\emscripten\\system\\include"
+			],
+			"compilerPath": "E:\\Documents\\emsdk\\upstream\\bin\\clang",
+			"cStandard": "c11",
+			"cppStandard": "c++11",
+			"intelliSenseMode": "clang-x64"
+		}
+	],
+	"version": 4
+}
