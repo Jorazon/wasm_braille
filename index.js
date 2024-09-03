@@ -65,20 +65,28 @@ const dataLength = colorData.data.length * colorData.data.BYTES_PER_ELEMENT;
 const dataPtr = hello.exports.malloc(dataLength);
 const imageDataMemory = new Uint8ClampedArray(hello.exports.memory.buffer, dataPtr, dataLength);
 
-function color2bw(threshold = 0.5) {
+function color2bw() {
 	colorData = colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height);
 	// copy imagedata into wasm memory
 	imageDataMemory.set(colorData.data);
 	// run desaturate wasm code
 	hello.exports.color2bw(dataPtr, dataLength);
-	hello.exports.threshold(threshold, colorCanvas.width, dataPtr, dataLength);
+	let dither = ditherCB.checked ?? true;
+	let threshold = dither ? 1.0 : thresholdSlider.value / (thresholdSlider.max - thresholdSlider.min);
+	hello.exports.threshold(threshold, colorCanvas.width, dither, dataPtr, dataLength);
 
 	const imageData = new ImageData(imageDataMemory, colorCanvas.width, colorCanvas.height);
 	bwCanvas.getContext("2d").putImageData(imageData, 0, 0);
 }
 
-document.getElementById("threshold").addEventListener("input", (event) => {
-	color2bw(event.target.value / (event.target.max - event.target.min));
+const thresholdSlider = document.getElementById("threshold");
+const ditherCB = document.getElementById("ditherCB");
+
+thresholdSlider.addEventListener("input", (event) => {
+	if (!ditherCB.checked ?? false) color2bw();
+});
+ditherCB.addEventListener("input", (event) => {
+	color2bw();
 });
 
 /**

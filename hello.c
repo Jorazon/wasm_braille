@@ -29,21 +29,54 @@ void index2xy(size_t index, size_t width, size_t* x, size_t* y){
 	*y = index / width;
 }
 
-void EMSCRIPTEN_KEEPALIVE threshold(double threshold, size_t width, uint8_t* dataPtr, size_t dataLength){
+void EMSCRIPTEN_KEEPALIVE threshold(double threshold, size_t width, int dither, uint8_t* dataPtr, size_t dataLength){
 	size_t x, y;
 	for (size_t i = 0; i < dataLength; i += 4) {
-		index2xy(i, width*4, &x, &y);
+		index2xy(i, width * 4, &x, &y);
 		uint8_t oldpixel = dataPtr[i];
-        uint8_t newpixel = (double)oldpixel/255.0 < threshold;
+        uint8_t newpixel = (double)oldpixel/255.0 >= threshold;
+		if (newpixel < 0) newpixel = 0;
 		newpixel *= 255; // debug
         dataPtr[i] = newpixel;
         dataPtr[i+1] = newpixel;
         dataPtr[i+2] = newpixel;
-        uint8_t quant_error = oldpixel - newpixel;
-        dataPtr[i + 4] += quant_error * 7 / 16;
-        if (x) dataPtr[i - 4 + width*4] += quant_error * 3 / 16;
-        dataPtr[i + width*4] += quant_error * 5 / 16;
-        dataPtr[i + 4 + width*4] += quant_error * 1 / 16;
+		if (dither) {
+			uint8_t quant_error = oldpixel - newpixel;
+
+			uint8_t qe1 = quant_error * 7 / 16;
+			uint8_t qe2 = quant_error * 3 / 16;
+			uint8_t qe3 = quant_error * 5 / 16;
+			uint8_t qe4 = quant_error * 1 / 16;
+
+			size_t idx1 = i + 4;
+			size_t idx2 = i - 4 + width * 4;
+			size_t idx3 = i     + width * 4;
+			size_t idx4 = i + 4 + width * 4;
+
+			if (dataPtr[idx1] < 255 - qe1) {
+				dataPtr[idx1] += qe1;
+			} else {
+				dataPtr[idx1] = 255;
+			}
+
+			if (dataPtr[idx2] < 255 - qe2) {
+				dataPtr[idx2] += qe2;
+			} else {
+				dataPtr[idx2] = 255;
+			}
+
+			if (dataPtr[idx3] < 255 - qe3) {
+				dataPtr[idx3] += qe3;
+			} else {
+				dataPtr[idx3] = 255;
+			}
+
+			if (dataPtr[idx4] < 255 - qe4) {
+				dataPtr[idx4] += qe4;
+			} else {
+				dataPtr[idx4] = 255;
+			}
+		}
 	}
 }
 
