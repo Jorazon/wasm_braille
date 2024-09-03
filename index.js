@@ -29,6 +29,7 @@ console.log(
 );
 
 const colorCanvas = document.getElementById("colorCanvas");
+const colorCanvasContext = colorCanvas.getContext("2d", { willReadFrequently: true });
 const bwCanvas = document.getElementById("bwCanvas");
 
 function drawImageToCanvas(canvas, file) {
@@ -59,28 +60,26 @@ function drawImageToCanvas(canvas, file) {
 	reader.readAsDataURL(file);
 }
 
+let colorData = colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height);
+const dataLength = colorData.data.length * colorData.data.BYTES_PER_ELEMENT;
+const dataPtr = hello.exports.malloc(dataLength);
+const imageDataMemory = new Uint8ClampedArray(hello.exports.memory.buffer, dataPtr, dataLength);
 
-function color2bw() {
-	const colorData = colorCanvas.getContext("2d").getImageData(0, 0, colorCanvas.width, colorCanvas.height);
+function color2bw(threshold = 0.5) {
+	colorData = colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height);
+	// copy imagedata into wasm memory
+	imageDataMemory.set(colorData.data);
+	// run desaturate wasm code
+	hello.exports.color2bw(dataPtr, dataLength);
+	hello.exports.threshold(threshold, colorCanvas.width, dataPtr, dataLength);
 
-	const memory = new DataView(hello.exports.memory.buffer);
-
-	for (let index = 0; index < memory.length; index++) {
-		memory.setUint8(index, colorData[index]);
-	}
-
-	hello.exports.color2bw(colorData.width, colorData.height, colorData.data);
-
-	const buffer = new Uint8ClampedArray(colorData.width * colorData.height * 4);
-
-	for (let index = 0; index < buffer.length; index++) {
-		buffer[index] = memory.getUint8(index);
-	}
-
-	const bwData = new ImageData(buffer, colorCanvas.width, colorCanvas.height);
-
-	bwCanvas.getContext("2d").putImageData(bwData, 0, 0);
+	const imageData = new ImageData(imageDataMemory, colorCanvas.width, colorCanvas.height);
+	bwCanvas.getContext("2d").putImageData(imageData, 0, 0);
 }
+
+document.getElementById("threshold").addEventListener("input", (event) => {
+	color2bw(event.target.value / (event.target.max - event.target.min));
+});
 
 /**
  * Handle file drop events

@@ -10,8 +10,10 @@
 		<div class="dropzone" aria-label="File Drop Zone">
 			<input type="file"></input>
 		</div>
-		<canvas id="colorCanvas" width="300" height="300"></canvas>
-		<canvas id="bwCanvas" width="300" height="300"></canvas>
+		<input type="range" min="0" max="100" value="50" step="1" id="threshold">
+		<br/>
+		<canvas id="colorCanvas" width="700" height="700"></canvas>
+		<canvas id="bwCanvas" width="700" height="700"></canvas>
 		<p id="output"></p>
 		<script type="module" src="index.js"></script>
 	</body>
