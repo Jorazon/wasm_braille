@@ -53,6 +53,7 @@ function drawImageToCanvas(canvas, file) {
 				context.drawImage(img, 0, 0, canvas.width, canvas.height);
 			}
 
+			allocateImageData();
 			color2bw();
 		};
 		img.src = event.target.result;
@@ -60,20 +61,30 @@ function drawImageToCanvas(canvas, file) {
 	reader.readAsDataURL(file);
 }
 
-let colorData = colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height);
-const dataLength = colorData.data.length * colorData.data.BYTES_PER_ELEMENT;
-const dataPtr = hello.exports.malloc(dataLength);
-const imageDataMemory = new Uint8ClampedArray(hello.exports.memory.buffer, dataPtr, dataLength);
+let ImageDataPointer = undefined;
+let imageDataMemory = new Uint8ClampedArray();
+let imageDataLength = 0;
+
+/**
+ * Allocate memory for image data on image change
+ */
+function allocateImageData() {
+	if (!ImageDataPointer) hello.exports.free(ImageDataPointer); // free old memory if exists
+	let colorData = colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height); // get colordata
+	imageDataLength = colorData.data.length * colorData.data.BYTES_PER_ELEMENT; // image data length in bytes
+	ImageDataPointer = hello.exports.malloc(imageDataLength); // allocate bytes and get pointer
+	imageDataMemory = new Uint8ClampedArray(hello.exports.memory.buffer, ImageDataPointer, imageDataLength); // get memory area
+}
+
+allocateImageData();
 
 function color2bw() {
-	colorData = colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height);
-	// copy imagedata into wasm memory
-	imageDataMemory.set(colorData.data);
-	// run desaturate wasm code
-	hello.exports.color2bw(dataPtr, dataLength);
+	imageDataMemory.set(colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height).data); // copy image data to memory
+	hello.exports.color2bw(ImageDataPointer, imageDataLength / 4); // run desaturate wasm code
+
 	let dither = ditherCB.checked ?? true;
-	let threshold = dither ? 1.0 : thresholdSlider.value / (thresholdSlider.max - thresholdSlider.min);
-	hello.exports.threshold(threshold, colorCanvas.width, dither, dataPtr, dataLength);
+	let threshold = dither ? 127 : thresholdSlider.value;
+	hello.exports.threshold(ImageDataPointer, imageDataLength / 4, colorCanvas.width, colorCanvas.height, threshold, dither);
 
 	const imageData = new ImageData(imageDataMemory, colorCanvas.width, colorCanvas.height);
 	bwCanvas.getContext("2d").putImageData(imageData, 0, 0);
@@ -83,7 +94,7 @@ const thresholdSlider = document.getElementById("threshold");
 const ditherCB = document.getElementById("ditherCB");
 
 thresholdSlider.addEventListener("input", (event) => {
-	if (!ditherCB.checked ?? false) color2bw();
+	if (!ditherCB.checked) color2bw();
 });
 ditherCB.addEventListener("input", (event) => {
 	color2bw();
