@@ -2,5 +2,6 @@
 	"files.associations": {
 		"emscripten.h": "c",
 		"stdio.h": "c"
-	}
+	},
+	"sonarlint.pathToCompileCommands": "${workspaceFolder}\\compile_commands.json"
 }
