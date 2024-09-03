@@ -10,8 +10,10 @@
 		<div class="dropzone" aria-label="File Drop Zone">
 			<input type="file"></input>
 		</div>
-		<label>Threshold<input type="range" min="0" max="100" value="63" step="1" id="threshold"></label>
+		<label>Threshold<input type="range" min="0" max="255" value="128" step="8" id="threshold"></label>
 		<label>Dither<input type="checkbox" checked="true" id="ditherCB"></label>
+		<label>Max Length<input type="number" disabled="true"></label>
+		<label>Max Width<input type="number" disabled="true"></label>
 		<br/>
 		<canvas id="colorCanvas" width="700" height="700"></canvas>
 		<canvas id="bwCanvas" width="700" height="700"></canvas>
