@@ -19,8 +19,6 @@ const wasiPolyfill = {
 			const bytes = new Uint8Array(wasiPolyfill.memory.buffer, bufPtr, bufLen);
 			const text = new TextDecoder('utf8').decode(bytes);
 
-			if (text.length == 0) continue;
-
 			if (fd === 1) {  // stdout
 				console.log(text);
 			} else if (fd === 2) {  // stderr
