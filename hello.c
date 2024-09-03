@@ -10,6 +10,12 @@ int EMSCRIPTEN_KEEPALIVE square(int n) {
 	return n * n;
 }
 
+/**
+ * @brief Color data to luma conversion.
+ * 
+ * @param dataPtr Pointer to start of RGBA data
+ * @param dataLength Length of data
+ */
 void EMSCRIPTEN_KEEPALIVE color2bw(uint8_t* dataPtr, size_t dataLength) {
 	for (size_t i = 0; i < dataLength; i += 4) {
 		uint8_t R, G, B;
@@ -29,13 +35,21 @@ void index2xy(size_t index, size_t width, size_t* x, size_t* y){
 	*y = index / width;
 }
 
-void EMSCRIPTEN_KEEPALIVE threshold(double threshold, size_t width, int dither, uint8_t* dataPtr, size_t dataLength){
+/**
+ * @brief Threshold image data to black and white with optional floyd-steinberg dithering.
+ * 
+ * @param threshold Threshold
+ * @param width Image width
+ * @param dither Boolean toggle for dithering
+ * @param dataPtr Pointer to start of RGBA data
+ * @param dataLength Length of data
+ */
+void EMSCRIPTEN_KEEPALIVE threshold(uint8_t threshold, size_t width, int dither, uint8_t* dataPtr, size_t dataLength) {
 	size_t x, y;
 	for (size_t i = 0; i < dataLength; i += 4) {
 		index2xy(i, width * 4, &x, &y);
 		uint8_t oldpixel = dataPtr[i];
-        uint8_t newpixel = (double)oldpixel/255.0 >= threshold;
-		if (newpixel < 0) newpixel = 0;
+        uint8_t newpixel = oldpixel >= threshold;
 		newpixel *= 255; // debug
         dataPtr[i] = newpixel;
         dataPtr[i+1] = newpixel;
@@ -52,7 +66,7 @@ void EMSCRIPTEN_KEEPALIVE threshold(double threshold, size_t width, int dither, 
 			size_t idx2 = i - 4 + width * 4;
 			size_t idx3 = i     + width * 4;
 			size_t idx4 = i + 4 + width * 4;
-
+// TODO oob check
 			if (dataPtr[idx1] < 255 - qe1) {
 				dataPtr[idx1] += qe1;
 			} else {
@@ -80,13 +94,24 @@ void EMSCRIPTEN_KEEPALIVE threshold(double threshold, size_t width, int dither, 
 	}
 }
 
+const uint_least16_t offset = 0x2800;
+
 /*
-dot pattern
-hex values
-1  8
-2  10
-4  20
-40 80
-offset
-0x2800
- */
+Bit order
+1 4
+2 5
+3 6
+7 8
+*/
+
+uint_least16_t toChar(uint8_t bits) {
+	return offset + bits;
+}
+
+size_t characterCount(size_t width, size_t height){
+	return (width + 1) / 2 * (height + 3) / 4 + 2 * (height - 1);
+}
+
+void EMSCRIPTEN_KEEPALIVE toBraille(size_t width, uint8_t* dataPtr, size_t dataLength) {
+	
+}
