@@ -45,12 +45,11 @@ function drawImageToCanvas(canvas, file) {
 
 			// Draw the image to fit within the canvas
 			const ratio = img.width / img.height;
-			if (ratio < 1) {
-				context.drawImage(img, (canvas.width / 2) - (canvas.height * ratio / 2), 0, canvas.width * ratio, canvas.height);
-			} else if (ratio > 1) {
-				context.drawImage(img, 0, (canvas.height / 2) - (canvas.height / ratio / 2), canvas.width, canvas.height / ratio);
+			const size = Math.min(canvas.width, canvas.height);
+			if (canvas.width > canvas.height) {
+				context.drawImage(img, 0, 0, size * ratio, size);
 			} else {
-				context.drawImage(img, 0, 0, canvas.width, canvas.height);
+				context.drawImage(img, 0, 0, size, size / ratio);
 			}
 
 			allocateImageData();
@@ -90,9 +89,30 @@ function color2bw() {
 	bwCanvas.getContext("2d").putImageData(imageData, 0, 0);
 }
 
+let stringPointer = 0;
+const textDecoder = new TextDecoder();
+
+function makeBraille() {
+	if (!stringPointer) hello.exports.free(stringPointer); // free old memory if exists
+	// 8 pixels per braille character (2 wide, 4 tall). 2 bytes per braille character. 1 byte per linefeed. 1 byte for null terminator.
+	const stringLength = (Math.ceil(colorCanvas.width / 2) * Math.ceil(colorCanvas.height / 4)) * 3 + (Math.ceil(colorCanvas.height / 4) - 1) + 1; // string length in bytes
+	// 100x100 should be 3775
+	stringPointer = hello.exports.malloc(stringLength); // allocate bytes and get pointer
+	const stringMemory = new Uint8ClampedArray(hello.exports.memory.buffer, stringPointer, stringLength); // get memory area
+	hello.exports.toBraille(ImageDataPointer, imageDataLength / 4, colorCanvas.width, colorCanvas.height, stringPointer, stringLength, invertCB.checked ?? false); // convert image to braille
+	return textDecoder.decode(stringMemory); // decode string and return
+}
+
+// html elements
 const thresholdSlider = document.getElementById("threshold");
 const ditherCB = document.getElementById("ditherCB");
+const invertCB = document.getElementById("invertCB");
+const convertButton = document.getElementById("convertButton");
+const stringOutput = document.getElementById("output");
 
+convertButton.addEventListener("click", (event) => {
+	stringOutput.innerText = makeBraille();
+});
 thresholdSlider.addEventListener("input", (event) => {
 	if (!ditherCB.checked) color2bw();
 });

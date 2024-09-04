@@ -103,7 +103,39 @@ void EMSCRIPTEN_KEEPALIVE threshold(struct pixel* dataPtr, size_t dataLength, si
     }
 }
 
-const uint_least16_t offset = 0x2800;
+size_t encode_utf8(char *output, unsigned int codepoint) {
+    if (codepoint <= 0x7F) {
+        // 1-byte UTF-8
+        output[0] = codepoint & 0x7F;
+        //output[1] = '\0';
+        return 1;
+    } else if (codepoint <= 0x7FF) {
+        // 2-byte UTF-8
+        output[0] = 0xC0 | ((codepoint >> 6) & 0x1F);
+        output[1] = 0x80 | (codepoint & 0x3F);
+        //output[2] = '\0';
+        return 2;
+    } else if (codepoint <= 0xFFFF) {
+        // 3-byte UTF-8
+        output[0] = 0xE0 | ((codepoint >> 12) & 0x0F);
+        output[1] = 0x80 | ((codepoint >> 6) & 0x3F);
+        output[2] = 0x80 | (codepoint & 0x3F);
+        //output[3] = '\0';
+        return 3;
+    } else if (codepoint <= 0x10FFFF) {
+        // 4-byte UTF-8
+        output[0] = 0xF0 | ((codepoint >> 18) & 0x07);
+        output[1] = 0x80 | ((codepoint >> 12) & 0x3F);
+        output[2] = 0x80 | ((codepoint >> 6) & 0x3F);
+        output[3] = 0x80 | (codepoint & 0x3F);
+        //output[4] = '\0';
+        return 4;
+    } else {
+        // Invalid codepoint
+        //output[0] = '\0';
+        return 0;
+    }
+}
 
 /*
 Bit order
@@ -113,14 +145,54 @@ Bit order
 7 8
 */
 
-uint_least16_t toChar(uint8_t bits) {
-    return offset + bits;
-}
-
-size_t characterCount(size_t width, size_t height){
-    return (width + 1) / 2 * (height + 3) / 4 + 2 * (height - 1);
-}
-
-void EMSCRIPTEN_KEEPALIVE toBraille(size_t width, uint8_t* dataPtr, size_t dataLength) {
-    
+void EMSCRIPTEN_KEEPALIVE toBraille(struct pixel* dataPtr, size_t dataLength, size_t width, size_t height, char* stringPointer, size_t stringLength, char invert) {
+    char* charIndex = stringPointer;
+    for (size_t y = 0; y < height; y += 4) {
+        for (size_t x = 0; x < width; x += 2) {
+            size_t index = xy2index(width, x, y);
+            
+            uint8_t color1 = dataPtr[index + 0 + width * 0].R;
+            uint8_t color2 = dataPtr[index + 0 + width * 1].R;
+            uint8_t color3 = dataPtr[index + 0 + width * 2].R;
+            uint8_t color4 = dataPtr[index + 1 + width * 0].R;
+            uint8_t color5 = dataPtr[index + 1 + width * 1].R;
+            uint8_t color6 = dataPtr[index + 1 + width * 2].R;
+            uint8_t color7 = dataPtr[index + 0 + width * 3].R;
+            uint8_t color8 = dataPtr[index + 1 + width * 3].R;
+            
+            if (!invert) {
+                color1 = 255 - color1;
+                color2 = 255 - color2;
+                color3 = 255 - color3;
+                color4 = 255 - color4;
+                color5 = 255 - color5;
+                color6 = 255 - color6;
+                color7 = 255 - color7;
+                color8 = 255 - color8;
+            }
+            
+            uint8_t alpha1 = dataPtr[index + 0 + width * 0].A;
+            uint8_t alpha2 = dataPtr[index + 0 + width * 1].A;
+            uint8_t alpha3 = dataPtr[index + 0 + width * 2].A;
+            uint8_t alpha4 = dataPtr[index + 1 + width * 0].A;
+            uint8_t alpha5 = dataPtr[index + 1 + width * 1].A;
+            uint8_t alpha6 = dataPtr[index + 1 + width * 2].A;
+            uint8_t alpha7 = dataPtr[index + 0 + width * 3].A;
+            uint8_t alpha8 = dataPtr[index + 1 + width * 3].A;
+            
+            unsigned int bits = // if pixel color & pixel alpha > 0 bit is 1
+            ((color1 & (alpha1 > 0) & 1) << 0) +
+            ((color2 & (alpha2 > 0) & 1) << 1) +
+            ((color3 & (alpha3 > 0) & 1) << 2) +
+            ((color4 & (alpha4 > 0) & 1) << 3) +
+            ((color5 & (alpha5 > 0) & 1) << 4) +
+            ((color6 & (alpha6 > 0) & 1) << 5) +
+            ((color7 & (alpha7 > 0) & 1) << 6) +
+            ((color8 & (alpha8 > 0) & 1) << 7);
+            
+            charIndex += encode_utf8(charIndex, 0x2800 + bits | 1);
+        }
+        charIndex += encode_utf8(charIndex, 0xA); // line feed
+    }
+    charIndex[stringLength - 1] = '\0'; // null terminate
 }
