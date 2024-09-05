@@ -10,13 +10,14 @@
 		<div class="dropzone" aria-label="File Drop Zone">
 			<input type="file"></input>
 		</div>
-		<label>Threshold<input type="range" min="0" max="255" value="128" step="8" id="threshold"></label>
-		<label>Dither<input type="checkbox" checked id="ditherCB"></label>
-		<label>Invert<input type="checkbox" id="invertCB"></label>
-		<label>Max Length<input type="number" disabled="true"></label>
-		<label>Max Width<input type="number" disabled="true"></label>
-		<button id="convertButton">Convert</button>
-		<br/>
+		<div class="inputContainer">
+			<label>Threshold<input type="range" min="0" max="255" value="128" step="8" id="threshold"></label>
+			<label>Dither<input type="checkbox" checked id="ditherCB"></label>
+			<label>Invert<input type="checkbox" id="invertCB"></label>
+			<label>Max Length<input type="number" disabled="true"></label>
+			<label>Max Width<input type="number" disabled="true"></label>
+			<button id="convertButton">Convert</button>
+		</div>
 		<canvas id="colorCanvas" width="42" height="48"></canvas>
 		<canvas id="bwCanvas" width="42" height="48"></canvas>
 		<p id="output"></p>
