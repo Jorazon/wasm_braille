@@ -7,20 +7,66 @@
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<div class="dropzone" aria-label="File Drop Zone">
-			<input type="file"></input>
+		<div class="row">
+			<div class="column">
+				<div class="dropzone column" aria-label="File Drop Zone">
+					Drag or choose file
+					<input type="file" />
+				</div>
+				<div class="column">
+					<label>
+						Threshold
+						<input
+							type="range"
+							min="0"
+							max="255"
+							value="128"
+							step="1"
+							id="threshold"
+							disabled
+						/>
+						<span id="thresholdText"></span>
+					</label>
+					<label>
+						<input type="checkbox" checked id="ditherCB" />
+						Dither
+					</label>
+					<label>
+						<input type="checkbox" id="invertCB" checked />
+						Invert
+					</label>
+					<label>
+						<input type="checkbox" id="maxLengthCB" />
+						Max Length
+						<input type="number" id="maxLength" value="2000" disabled />
+					</label>
+					<label>
+						<input type="checkbox" id="maxWidthCB" checked />
+						Max Width
+						<input type="number" id="maxWidth" value="21" />
+					</label>
+					<label>
+						<input type="checkbox" id="autoconvertCB" checked />
+						Auto Convert
+					</label>
+					<button id="convertButton">Convert</button>
+				</div>
+				<div class="column">
+					<h2>Previews</h2>
+					<div class="row">
+						<div class="column">
+							Color
+							<canvas id="colorCanvas" width="100" height="100"></canvas>
+						</div>
+						<div class="column">
+							Black & White
+							<canvas id="bwCanvas" width="100" height="100"></canvas>
+						</div>
+					</div>
+				</div>
+			</div>
+			<p id="output"></p>
 		</div>
-		<div class="inputContainer">
-			<label>Threshold<input type="range" min="0" max="255" value="128" step="8" id="threshold"></label>
-			<label>Dither<input type="checkbox" checked id="ditherCB"></label>
-			<label>Invert<input type="checkbox" id="invertCB"></label>
-			<label>Max Length<input type="number" disabled="true"></label>
-			<label>Max Width<input type="number" disabled="true"></label>
-			<button id="convertButton">Convert</button>
-		</div>
-		<canvas id="colorCanvas" width="42" height="48"></canvas>
-		<canvas id="bwCanvas" width="42" height="48"></canvas>
-		<p id="output"></p>
 		<script type="module" src="index.js"></script>
 	</body>
 </html>
