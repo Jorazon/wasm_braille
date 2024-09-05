@@ -28,6 +28,17 @@ console.log(
 	hello.exports.square(13)
 );
 
+/**
+ * Get dimensions of image with a given ratio that has pixels closest to but not over count
+ * @param {number} count maximim number of pixels
+ * @param {number} ratio image width/height ratio
+ * @returns {number[]}
+ */
+function xyFromCount(count, ratio) {
+	x = Math.sqrt(count) / Math.sqrt(ratio);
+	return [Math.floor(x), Math.floor(x * ratio)];
+}
+
 const colorCanvas = document.getElementById("colorCanvas");
 const colorCanvasContext = colorCanvas.getContext("2d", { willReadFrequently: true });
 const bwCanvas = document.getElementById("bwCanvas");
