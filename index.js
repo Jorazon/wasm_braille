@@ -77,6 +77,10 @@ ditherCB.addEventListener("input", (event) => {
 	color2bw();
 	if (autoconvertCB.checked) convert();
 });
+invertCB.addEventListener("input", (event) => {
+	color2bw();
+	if (autoconvertCB.checked) convert();
+});
 maxLengthCB.addEventListener("change", (event) => {
 	maxWidthCB.checked = false;
 	maxWidth.disabled = true;
@@ -143,7 +147,7 @@ image.onload = function () {
 
 /**
  * Load image from file
- * @param {File} file 
+ * @param {File} file
  */
 function loadImageFromFile(file) {
 	const reader = new FileReader();
@@ -153,7 +157,7 @@ function loadImageFromFile(file) {
 	reader.readAsDataURL(file);
 }
 
-let ImageDataPointer = undefined;
+let ImageDataPointer;
 let imageDataMemory = new Uint8ClampedArray();
 let imageDataLength = 0;
 
