@@ -27,7 +27,7 @@ void setPixelRGB(struct pixel* pixel, uint8_t value) {
 
 /**
  * @brief Color data to luma conversion.
- * 
+ *
  * @param dataPtr Pointer to start of RGBA data
  * @param dataLength Length of data
  */
@@ -51,7 +51,7 @@ size_t xy2index(size_t width, size_t x, size_t y) {
 
 /**
  * @brief Threshold image data to black and white with optional floyd-steinberg dithering.
- * 
+ *
  * @param dataPtr Pointer to start of RGBA data
  * @param dataLength Length of data
  * @param width Image width
@@ -67,31 +67,31 @@ void EMSCRIPTEN_KEEPALIVE threshold(struct pixel* dataPtr, size_t dataLength, si
             uint8_t oldpixel = P->R; // get pixel value
             uint8_t newpixel = (oldpixel > threshold) * 255; // calculate new value
             setPixelRGB(P, clamp(newpixel, 0, 255)); // set new value
-            
+
             if (dither) {
                 int quant_error = oldpixel - newpixel; // calculate error
-                
+
                 int oobArr[] = {
                     x + 1 < width,
                     x - 1 >= 0 && y + 1 < height,
                     y + 1 < height,
                     x + 1 < width && y + 1 < height
                 };
-                
+
                 size_t idxArr[] = {
                     xy2index(width, x + 1, y),
                     xy2index(width, x - 1, y + 1),
                     xy2index(width, x, y + 1),
                     xy2index(width, x + 1, y + 1)
                 };
-                
+
                 int qeArr[] = {
                     quant_error * 7 / 16,
                     quant_error * 3 / 16,
                     quant_error * 5 / 16,
                     quant_error * 1 / 16
                 };
-                
+
                 for (size_t i = 0; i < 4; i++)
                 {
                     if (oobArr[i]) {
@@ -150,7 +150,7 @@ void EMSCRIPTEN_KEEPALIVE toBraille(struct pixel* dataPtr, size_t dataLength, si
     for (size_t y = 0; y < height; y += 4) {
         for (size_t x = 0; x < width; x += 2) {
             size_t index = xy2index(width, x, y);
-            
+
             uint8_t color1 = dataPtr[index + 0 + width * 0].R;
             uint8_t color2 = dataPtr[index + 0 + width * 1].R;
             uint8_t color3 = dataPtr[index + 0 + width * 2].R;
@@ -159,7 +159,7 @@ void EMSCRIPTEN_KEEPALIVE toBraille(struct pixel* dataPtr, size_t dataLength, si
             uint8_t color6 = dataPtr[index + 1 + width * 2].R;
             uint8_t color7 = dataPtr[index + 0 + width * 3].R;
             uint8_t color8 = dataPtr[index + 1 + width * 3].R;
-            
+
             if (!invert) {
                 color1 = 255 - color1;
                 color2 = 255 - color2;
@@ -170,7 +170,7 @@ void EMSCRIPTEN_KEEPALIVE toBraille(struct pixel* dataPtr, size_t dataLength, si
                 color7 = 255 - color7;
                 color8 = 255 - color8;
             }
-            
+
             uint8_t alpha1 = dataPtr[index + 0 + width * 0].A;
             uint8_t alpha2 = dataPtr[index + 0 + width * 1].A;
             uint8_t alpha3 = dataPtr[index + 0 + width * 2].A;
@@ -179,7 +179,7 @@ void EMSCRIPTEN_KEEPALIVE toBraille(struct pixel* dataPtr, size_t dataLength, si
             uint8_t alpha6 = dataPtr[index + 1 + width * 2].A;
             uint8_t alpha7 = dataPtr[index + 0 + width * 3].A;
             uint8_t alpha8 = dataPtr[index + 1 + width * 3].A;
-            
+
             unsigned int bits = // if pixel color & pixel alpha > 0 bit is 1
             ((color1 & (alpha1 > 0) & 1) << 0) +
             ((color2 & (alpha2 > 0) & 1) << 1) +
@@ -189,8 +189,10 @@ void EMSCRIPTEN_KEEPALIVE toBraille(struct pixel* dataPtr, size_t dataLength, si
             ((color6 & (alpha6 > 0) & 1) << 5) +
             ((color7 & (alpha7 > 0) & 1) << 6) +
             ((color8 & (alpha8 > 0) & 1) << 7);
-            
-            charIndex += encode_utf8(charIndex, 0x2800 + bits | 1);
+
+            if (!bits) bits |= 1; // set top bit if otherwise empty to avoid collapsing whitespace
+
+            charIndex += encode_utf8(charIndex, 0x2800 + bits); // encode character
         }
         charIndex += encode_utf8(charIndex, 0xA); // line feed
     }
