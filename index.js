@@ -169,6 +169,12 @@ function allocateImageData() {
 	if (colorCanvas.width == 0 || colorCanvas.height == 0) return;
 	let colorData = colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height); // get colordata
 	imageDataLength = colorData.data.length * colorData.data.BYTES_PER_ELEMENT; // image data length in bytes
+	// grow memory if needed
+	if (hello.exports.memory.buffer.byteLength < imageDataLength) {
+		const memoryBufferByteLength = hello.exports.memory.buffer.byteLength;
+		// grow memory by required number of 64KiB pages
+		hello.exports.memory.grow(Math.ceil((imageDataLength / memoryBufferByteLength) / (64 * 1024)));
+	}
 	ImageDataPointer = hello.exports.malloc(imageDataLength); // allocate bytes and get pointer
 	imageDataMemory = new Uint8ClampedArray(hello.exports.memory.buffer, ImageDataPointer, imageDataLength); // get memory area
 }
