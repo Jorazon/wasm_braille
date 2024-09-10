@@ -110,7 +110,20 @@ maxWidth.addEventListener("change", (event) => {
 
 let image = new Image();
 
+// run when loading new image
+image.onload = function () {
+	resizeImage();
+	color2bw();
+	if (autoconvertCB.checked) convert();
+};
+
+/**
+ * Resize canvases based on image size
+ * @returns {void}
+ */
 function resizeImage() {
+	if (image.width == 0 || image.height == 0) return;
+	// image aspect ratio
 	const ratio = image.width / image.height;
 
 	if (maxLengthCB.checked) {
@@ -131,19 +144,12 @@ function resizeImage() {
 	bwCanvas.width = colorCanvas.width;
 	bwCanvas.height = colorCanvas.height;
 
-	const context = colorCanvas.getContext("2d");
-	if (!context) return;
-	context.clearRect(0, 0, colorCanvas.width, colorCanvas.height); // Clear the canvas
-	context.drawImage(image, 0, 0, colorCanvas.width, colorCanvas.height); // draw image
+	if (!colorCanvasContext) return;
+	colorCanvasContext.clearRect(0, 0, colorCanvas.width, colorCanvas.height); // Clear the canvas
+	colorCanvasContext.drawImage(image, 0, 0, colorCanvas.width, colorCanvas.height); // draw image
 
 	allocateImageData();
 }
-
-image.onload = function () {
-	resizeImage();
-	color2bw();
-	if (autoconvertCB.checked) convert();
-};
 
 /**
  * Load image from file
@@ -158,11 +164,14 @@ function loadImageFromFile(file) {
 }
 
 let ImageDataPointer;
-let imageDataMemory = new Uint8ClampedArray();
-let imageDataLength = 0;
+/**
+ * @type {Uint8ClampedArray}
+ */
+let imageDataMemory;
+let imageDataLength;
 
 /**
- * Allocate memory for image data on image change
+ * Allocate memory for image data when image changes
  */
 function allocateImageData() {
 	if (!ImageDataPointer) hello.exports.free(ImageDataPointer); // free old memory if exists
@@ -181,6 +190,7 @@ function allocateImageData() {
 
 function color2bw() {
 	if (colorCanvas.width == 0 || colorCanvas.height == 0 || imageDataMemory.length == 0) return;
+	// TODO maybe add a second array for BW data
 	imageDataMemory.set(colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height).data); // copy image data to memory
 	hello.exports.color2bw(ImageDataPointer, imageDataLength / 4); // run desaturate wasm code
 
