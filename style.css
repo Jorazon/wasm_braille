@@ -26,14 +26,17 @@ canvas {
 
 #output {
 	color: white;
-	background: gray;
+	background: var(--bgray);
+	padding: 0.5em;
 	width: min-content;
+	white-space: pre;
 }
 
 :root {
 	--lgray: #353535;
 	--gray: #2a2a2a;
 	--dgray: #161616;
+	--bgray: #313338;
 	--yellow: #ffcc33;
 	--orange: #ce9700;
 }
