@@ -60,6 +60,6 @@ body {
 		var(--lgray) calc(607 / 776 * 100%),
 		var(--lgray) calc(771 / 776 * 100%),
 		var(--dgray) calc(771 / 776 * 100%),
-		var(--lgray) 100%
+		#424242 100%
 	);
 }
