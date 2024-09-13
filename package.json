@@ -8,5 +8,8 @@
 	},
 	"author": "",
 	"license": "ISC",
-	"description": ""
+	"description": "",
+	"dependencies": {
+		"wasm_braille": "file:"
+	}
 }
