@@ -36,14 +36,14 @@
 						Invert
 					</label>
 					<label>
-						<input type="checkbox" id="maxLengthCB" />
+						<input type="checkbox" id="maxLengthCB" checked />
 						Max Length
-						<input type="number" id="maxLength" value="2000" disabled />
+						<input type="number" id="maxLength" value="2000" />
 					</label>
 					<label>
-						<input type="checkbox" id="maxWidthCB" checked />
+						<input type="checkbox" id="maxWidthCB" />
 						Max Width
-						<input type="number" id="maxWidth" value="21" />
+						<input type="number" id="maxWidth" value="21" disabled />
 					</label>
 					<label>
 						<input type="checkbox" id="autoconvertCB" checked />
@@ -66,7 +66,8 @@
 				</div>
 			</div>
 		</div>
-		<p id="output"></p>
+		<button id="copy">Copy</button>
+		<p id="output">Choose a file :D</p>
 		<script type="module" src="index.js"></script>
 	</body>
 </html>

@@ -194,6 +194,7 @@ void EMSCRIPTEN_KEEPALIVE toBraille(struct pixel* dataPtr, size_t dataLength, si
 
             charIndex += encode_utf8(charIndex, 0x2800 + bits); // encode character
         }
+        charIndex += encode_utf8(charIndex, 0xD); // carriage return
         charIndex += encode_utf8(charIndex, 0xA); // line feed
     }
     charIndex[stringLength - 1] = '\0'; // null terminate

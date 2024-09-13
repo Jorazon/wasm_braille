@@ -35,7 +35,7 @@ console.log(
  * @returns {number[]}
  */
 function xyFromCount(count, ratio) {
-	// 2 is subtracted to account for linefeeds
+	// 2 is subtracted to account for CRLF
 	let y = (Math.sqrt(count) / Math.sqrt(ratio)) - 2;
 	return [Math.floor(y * ratio), Math.floor(y)];
 }
@@ -51,6 +51,7 @@ const maxLength = document.getElementById("maxLength");
 const maxWidth = document.getElementById("maxWidth");
 const autoconvertCB = document.getElementById("autoconvertCB");
 const convertButton = document.getElementById("convertButton");
+const copyButton = document.getElementById("copy");
 const stringOutput = document.getElementById("output");
 
 // canvases
@@ -61,6 +62,10 @@ const bwCanvas = document.getElementById("bwCanvas");
 function convert() {
 	stringOutput.innerText = makeBraille();
 }
+// copy stringOutput to clipboard
+copyButton.addEventListener("click", (event) => {
+	navigator.clipboard.writeText(stringOutput.innerText);
+});
 
 thresholdText.innerText = thresholdSlider.value;
 
@@ -207,13 +212,14 @@ const textDecoder = new TextDecoder();
 
 function makeBraille() {
 	if (!stringPointer) hello.exports.free(stringPointer); // free old memory if exists
-	// 8 pixels per braille character (2 wide, 4 tall). 2 bytes per braille character. 1 byte per linefeed. 1 byte for null terminator.
-	const stringLength = (Math.ceil(colorCanvas.width / 2) * Math.ceil(colorCanvas.height / 4)) * 3 + (Math.ceil(colorCanvas.height / 4) - 1) + 1; // string length in bytes
+	// 8 pixels per braille character (2 wide, 4 tall). 3 bytes per braille character. 2 bytes per CRLF. 1 byte for null terminator.
+	const stringLength = (Math.ceil(colorCanvas.width / 2) * Math.ceil(colorCanvas.height / 4)) * 3 + (Math.ceil(colorCanvas.height / 4) - 1) * 2 + 1; // string length in bytes
 	// 100x100 should be 3775
 	stringPointer = hello.exports.malloc(stringLength); // allocate bytes and get pointer
 	const stringMemory = new Uint8ClampedArray(hello.exports.memory.buffer, stringPointer, stringLength); // get memory area
 	hello.exports.toBraille(ImageDataPointer, imageDataLength / 4, colorCanvas.width, colorCanvas.height, stringPointer, stringLength, invertCB.checked ?? false); // convert image to braille
 	const string = textDecoder.decode(stringMemory);
+	//console.log("string length:", string.length);
 	return string; // decode string and return
 }
 
