@@ -4,7 +4,7 @@
 	"main": "index.js",
 	"scripts": {
 		"compile": "emcc -s EXPORTED_FUNCTIONS=\"['_main', '_malloc', '_free']\" hello.c -O0 -o hello.wasm",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"serve": "python -m http.server"
 	},
 	"author": "",
 	"license": "ISC",
