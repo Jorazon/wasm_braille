@@ -4,8 +4,8 @@
 	padding: 2rem;
 	margin-right: 1rem;
 	border-radius: 1rem;
-	border: 2px solid yellowgreen;
-	background: greenyellow;
+	border: 2px solid var(--dgray);
+	background: var(--orange);
 }
 
 canvas {
@@ -28,4 +28,35 @@ canvas {
 	color: white;
 	background: gray;
 	width: min-content;
+}
+
+:root {
+	--lgray: #353535;
+	--gray: #2a2a2a;
+	--dgray: #161616;
+	--yellow: #ffcc33;
+	--orange: #ce9700;
+}
+
+html {
+	min-height: 100%;
+	min-width: 100%;
+}
+
+body {
+	margin: 0;
+	padding: 2rem;
+	background-size: 100vw;
+	background: linear-gradient(
+		90deg,
+		var(--gray) 0%,
+		var(--gray) calc(5 / 776 * 100%),
+		var(--yellow) calc(5 / 776 * 100%),
+		var(--yellow) calc(604 / 776 * 100%),
+		var(--orange) calc(607 / 776 * 100%),
+		var(--lgray) calc(607 / 776 * 100%),
+		var(--lgray) calc(771 / 776 * 100%),
+		var(--dgray) calc(771 / 776 * 100%),
+		var(--lgray) 100%
+	);
 }
