@@ -174,27 +174,32 @@ let ImageDataPointer;
  */
 let imageDataMemory;
 let imageDataLength;
+const WASM_PAGE_SIZE = 64 * 1024;
 
 /**
  * Allocate memory for image data when image changes
  */
 function allocateImageData() {
-	if (!ImageDataPointer) hello.exports.free(ImageDataPointer); // free old memory if exists
+	if (ImageDataPointer) {
+		hello.exports.free(ImageDataPointer); // free old memory if exists
+		ImageDataPointer = 0;
+		imageDataMemory = undefined;
+	}
 	if (colorCanvas.width == 0 || colorCanvas.height == 0) return;
 	let colorData = colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height); // get colordata
 	imageDataLength = colorData.data.length * colorData.data.BYTES_PER_ELEMENT; // image data length in bytes
 	// grow memory if needed
-	if (hello.exports.memory.buffer.byteLength < imageDataLength) {
-		const memoryBufferByteLength = hello.exports.memory.buffer.byteLength;
-		// grow memory by required number of 64KiB pages
-		hello.exports.memory.grow(Math.ceil((imageDataLength / memoryBufferByteLength) / (64 * 1024)));
+	const minimumMemoryLength = imageDataLength * 2;
+	if (hello.exports.memory.buffer.byteLength < minimumMemoryLength) {
+		const additionalBytes = minimumMemoryLength - hello.exports.memory.buffer.byteLength;
+		hello.exports.memory.grow(Math.ceil(additionalBytes / WASM_PAGE_SIZE));
 	}
 	ImageDataPointer = hello.exports.malloc(imageDataLength); // allocate bytes and get pointer
 	imageDataMemory = new Uint8ClampedArray(hello.exports.memory.buffer, ImageDataPointer, imageDataLength); // get memory area
 }
 
 function color2bw() {
-	if (colorCanvas.width == 0 || colorCanvas.height == 0 || imageDataMemory.length == 0) return;
+	if (colorCanvas.width == 0 || colorCanvas.height == 0 || !imageDataMemory || imageDataMemory.length == 0) return;
 	// TODO maybe add a second array for BW data
 	imageDataMemory.set(colorCanvasContext.getImageData(0, 0, colorCanvas.width, colorCanvas.height).data); // copy image data to memory
 	hello.exports.color2bw(ImageDataPointer, imageDataLength / 4); // run desaturate wasm code
@@ -211,14 +216,17 @@ let stringPointer = 0;
 const textDecoder = new TextDecoder();
 
 function makeBraille() {
-	if (!stringPointer) hello.exports.free(stringPointer); // free old memory if exists
+	if (!ImageDataPointer || !imageDataLength || colorCanvas.width == 0 || colorCanvas.height == 0) return "";
+	if (stringPointer) hello.exports.free(stringPointer); // free old memory if exists
 	// 8 pixels per braille character (2 wide, 4 tall). 3 bytes per braille character. 2 bytes per CRLF. 1 byte for null terminator.
 	const stringLength = (Math.ceil(colorCanvas.width / 2) * Math.ceil(colorCanvas.height / 4)) * 3 + (Math.ceil(colorCanvas.height / 4) - 1) * 2 + 1; // string length in bytes
+	const allocationLength = stringLength * 2 + 2; // compatibility padding for older hello.wasm builds
 	// 100x100 should be 3775
-	stringPointer = hello.exports.malloc(stringLength); // allocate bytes and get pointer
+	stringPointer = hello.exports.malloc(allocationLength); // allocate bytes and get pointer
 	const stringMemory = new Uint8ClampedArray(hello.exports.memory.buffer, stringPointer, stringLength); // get memory area
 	hello.exports.toBraille(ImageDataPointer, imageDataLength / 4, colorCanvas.width, colorCanvas.height, stringPointer, stringLength, invertCB.checked ?? false); // convert image to braille
-	const string = textDecoder.decode(stringMemory);
+	const nullTerminator = stringMemory.indexOf(0);
+	const string = textDecoder.decode(nullTerminator >= 0 ? stringMemory.slice(0, nullTerminator) : stringMemory);
 	//console.log("string length:", string.length);
 	return string; // decode string and return
 }

@@ -146,9 +146,20 @@ Bit order
 */
 
 void EMSCRIPTEN_KEEPALIVE toBraille(struct pixel* dataPtr, size_t dataLength, size_t width, size_t height, char* stringPointer, size_t stringLength, char invert) {
+    if (!dataPtr || !stringPointer || stringLength == 0 || width == 0 || height == 0) {
+        return;
+    }
+
     char* charIndex = stringPointer;
+    char* stringEnd = stringPointer + stringLength - 1;
+
     for (size_t y = 0; y < height; y += 4) {
         for (size_t x = 0; x < width; x += 2) {
+            if (charIndex + 3 > stringEnd) {
+                *stringEnd = '\0';
+                return;
+            }
+
             size_t index = xy2index(width, x, y);
 
             uint8_t color1 = dataPtr[index + 0 + width * 0].R;
@@ -194,8 +205,17 @@ void EMSCRIPTEN_KEEPALIVE toBraille(struct pixel* dataPtr, size_t dataLength, si
 
             charIndex += encode_utf8(charIndex, 0x2800 + bits); // encode character
         }
-        charIndex += encode_utf8(charIndex, 0xD); // carriage return
-        charIndex += encode_utf8(charIndex, 0xA); // line feed
+
+        if (y + 4 < height) {
+            if (charIndex + 2 > stringEnd) {
+                *stringEnd = '\0';
+                return;
+            }
+
+            charIndex += encode_utf8(charIndex, 0xD); // carriage return
+            charIndex += encode_utf8(charIndex, 0xA); // line feed
+        }
     }
-    charIndex[stringLength - 1] = '\0'; // null terminate
+
+    *charIndex = '\0'; // null terminate
 }
